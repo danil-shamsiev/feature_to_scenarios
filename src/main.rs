@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 
 const FEATURE_FILES_PATH: &str = "./features/";
-const TAG: &str = "tc_login_001";
+const TAG: &str = "tc_login_002";
 
 #[derive(Debug)]
 pub struct Example {
@@ -54,30 +54,35 @@ impl Example {
     }
 
     fn expand_scenario(&self, scenario: &Scenario) -> Vec<Scenario> {
-        let mut scenarios = vec![];
-        for example in self.data.iter() {
-            let mut steps = scenario.steps.clone();
-            let mut values = vec![];
-            for step in steps.iter() {
-                let mut new_step_value = step.value.clone();
-                for key in example.keys() {
-                    let pattern = format!("<{}>", key);
-                    new_step_value = new_step_value.replace(&pattern, example.get(key).unwrap());
+        if self.data.len() == 0 {
+            vec![scenario.clone()]
+        } else {
+            let mut scenarios = vec![];
+            for example in self.data.iter() {
+                let mut steps = scenario.steps.clone();
+                let mut values = vec![];
+                for step in steps.iter() {
+                    let mut new_step_value = step.value.clone();
+                    for key in example.keys() {
+                        let pattern = format!("<{}>", key);
+                        new_step_value =
+                            new_step_value.replace(&pattern, example.get(key).unwrap());
+                    }
+                    values.push(new_step_value);
                 }
-                values.push(new_step_value);
+                for (i, value) in values.iter().enumerate() {
+                    steps[i] = Step {
+                        value: value.to_string(),
+                        ..steps[i].clone()
+                    };
+                }
+                scenarios.push(Scenario {
+                    steps,
+                    ..scenario.clone()
+                });
             }
-            for (i, value) in values.iter().enumerate() {
-                steps[i] = Step {
-                    value: value.to_string(),
-                    ..steps[i].clone()
-                };
-            }
-            scenarios.push(Scenario {
-                steps,
-                ..scenario.clone()
-            });
+            scenarios
         }
-        scenarios
     }
 }
 

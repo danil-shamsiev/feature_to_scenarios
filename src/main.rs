@@ -1,7 +1,9 @@
 use gherkin::{Background, Examples, Feature, GherkinEnv, Scenario, Step};
 
 use std::collections::HashMap;
-use std::fs;
+use std::fs::{self, File};
+use std::io::Write;
+use std::path::Path;
 
 const FEATURE_FILES_PATH: &str = "./features/";
 const TEMP_FEATURE_FILES_PATH: &str = "./features/temp/";
@@ -153,8 +155,19 @@ pub fn split_feature(feature: &Feature) -> Vec<Feature> {
     features
 }
 
+pub fn write_features(features: &Vec<Feature>) {
+    fs::create_dir_all(TEMP_FEATURE_FILES_PATH).unwrap();
+    for (i, feature) in features.iter().enumerate() {
+        fs::write(
+            &format!("{}{}.feature", TEMP_FEATURE_FILES_PATH, i),
+            feature_to_string(feature),
+        )
+        .unwrap();
+    }
+}
+
 fn main() {
-    fs::read_dir(FEATURE_FILES_PATH)
+    let features: Vec<Feature> = fs::read_dir(FEATURE_FILES_PATH)
         .unwrap()
         .into_iter()
         .map(|path| path.unwrap().path().display().to_string())
@@ -169,19 +182,6 @@ fn main() {
         .filter(|feature| feature.scenarios.len() != 0)
         .map(|feature| expand_feature(&feature))
         .flat_map(|feature| split_feature(&feature))
-        .for_each(|feature| {
-            println!("{}", feature_to_string(&feature));
-        });
-
-    // fs::read_dir(FEATURE_FILES_PATH)
-    //     .unwrap()
-    //     .into_iter()
-    //     .map(|path| path.unwrap().path().display().to_string())
-    //     .map(|file| Feature::parse_path(file, GherkinEnv::new("formal").unwrap()).unwrap())
-    //     .flat_map(|feature| filter_and_expand(&feature, &TAG.to_string()))
-    //     .flat_map(|scenario| {
-    //         let example = Example::from(&scenario.examples);
-    //         example.expand_scenario(&scenario)
-    //     })
-    //     .for_each(|_| println!("1"));
+        .collect();
+    write_features(&features);
 }

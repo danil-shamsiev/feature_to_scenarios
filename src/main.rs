@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 
 const FEATURE_FILES_PATH: &str = "./features/";
+const TEMP_FEATURE_FILES_PATH: &str = "./features/temp/";
 const TAG: &str = "tc_login_002";
 
 #[derive(Debug)]
@@ -113,16 +114,24 @@ pub fn filter_and_expand(feature: &Feature, tag: &String) -> Vec<Scenario> {
         .collect()
 }
 
+pub fn feature_to_string(feature: &Feature) -> String {
+    let mut output = String::new();
+    output.push_str(&format!("{}: {}\n\n", feature.keyword, feature.name));
+    let scenario1 = &feature.scenarios[0];
+    for step in scenario1.steps.iter() {
+        output.push_str(&format!("\t{}\n", step.to_string()));
+    }
+    output
+}
+
 fn main() {
     fs::read_dir(FEATURE_FILES_PATH)
         .unwrap()
         .into_iter()
         .map(|path| path.unwrap().path().display().to_string())
         .map(|file| Feature::parse_path(file, GherkinEnv::new("formal").unwrap()).unwrap())
-        .flat_map(|feature| filter_and_expand(&feature, &TAG.to_string()))
-        .flat_map(|scenario| {
-            let example = Example::from(&scenario.examples);
-            example.expand_scenario(&scenario)
-        })
-        .for_each(|_| println!("1"));
+        .take(1)
+        .for_each(|feature| {
+            println!("{}", feature_to_string(&feature));
+        });
 }

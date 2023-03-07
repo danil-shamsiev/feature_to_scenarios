@@ -1,9 +1,7 @@
 use gherkin::{Background, Examples, Feature, GherkinEnv, Scenario, Step};
 
 use std::collections::HashMap;
-use std::fs::{self, File};
-use std::io::Write;
-use std::path::Path;
+use std::fs;
 
 const FEATURE_FILES_PATH: &str = "./features/";
 const TEMP_FEATURE_FILES_PATH: &str = "./features/temp/";

@@ -1,3 +1,4 @@
 /target
 /features
 .DS_Store
+*.feature
